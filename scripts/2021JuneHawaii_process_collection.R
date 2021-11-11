@@ -1,5 +1,6 @@
 library(tidyverse)
 library(easyfulcrum)
+#devtools::install_github("AndersenLab/easyfulcrum")
 
 # define project directory
 dir = "~/repos/2021JuneHawaii"
