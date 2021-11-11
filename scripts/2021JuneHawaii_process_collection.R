@@ -19,9 +19,8 @@ flag_temp <- checkTemperatures(data = proc_fulc, return_flags = TRUE)
 
 # join the fulcrum data
 join_fulc <- joinFulcrum(data = proc_fulc, select_vars = TRUE) %>%
-  dplyr::mutate(s_label = case_when(c_label == "C-6536" ~ "S-14573",
-                                    TRUE ~ s_label), # CORRECT S-14574
-                substrate_other = as.character(substrate_other),  # fix data classes
+  dplyr::filter(!(s_label %in% c("S-14574", "S-14444"))) %>% # remove records with duplicated S-label S-14574 and mis genotyped S-label
+  dplyr::mutate(substrate_other = as.character(substrate_other),  # fix data classes
                 gps_speed = as.numeric(gps_speed),  # fix data classes
                 gps_vertical_accuracy = as.numeric(gps_vertical_accuracy)) # fix data classes
 
@@ -40,15 +39,15 @@ anno_fulc <- annotateFulcrum(data = join_fulc, dir = NULL, select_vars = TRUE)
 
 # Read genotyping sheet
 raw_geno_nema <- readGenotypes(gsKey = c("1DpsOa6C6zMx9qxq8BthusiiVK8Lw-7S5bKTdcMoaN7o"),
-                               col_types = "cDDdcdcddddddDcDDdcdcdddddddcdcccddccc")
+                               col_types = "cDDdcdcddddddDcDDdcdcdddddddcdcccddccc") %>%
+  dplyr::filter(!(s_label %in% c("S-14573", "S-14574", "S-14444"))) # fix S-laebls with errors
 
 # process the genotyping sheet
 proc_geno_nema <- checkGenotypes(geno_data = raw_geno_nema, fulc_data = anno_fulc, 
                                  return_geno = TRUE, return_flags = FALSE, profile = "nematode") 
 # S-14573 is in genotyping sheet but not fulcrum. This is prbably b/c Erik accidentally scanned S-14574 in 
-#   its place. The isolate has an SSU band but not an ITS2 band so we can probablly change the fulcrum data
-#   to reflect the mislabeleing without issue.
-# S-14444 is lost, Robyn said it failed to sequence but could not be re-lysed.Leaving alone.
+#   its place. The isolate has an SSU band but not an ITS2 band I will drop S-14573 and S-14574.
+# S-14444 is lost, Robyn said it failed to sequence but could not be re-lysed. We are dropping from data.
 
 # join genotype data with Fulcrum data
 join_genofulc_nema <- joinGenoFulc(geno = proc_geno_nema, fulc = anno_fulc, dir = NULL, select_vars = TRUE)
